@@ -31,12 +31,12 @@ A web-based doctor appointment booking system that allows users to book doctor a
 - Backend: Node.js, Express.js
 - Database: MongoDB Atlas
 - Authentication: JWT
-- Deployment: Vercel (Frontend), Render (Backend)
 
 ## ⚙️ Installation
 
 ```bash
 git clone https://github.com/your-username/health-appointment-system.git
-cd health-appointment-system
+cd Doctor Appointment System
 npm install
-npm run dev
+cd ../server
+npm install
