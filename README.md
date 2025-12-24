@@ -1,4 +1,4 @@
-# Health Appointment System
+# Doctor Appointment System
 
 A modern web-based doctor appointment booking platform designed to simplify hospital appointment scheduling for patients, doctors, and administrators.
 
