@@ -1,0 +1,250 @@
+ /* PAGE LAYOUT */
+    :root {
+      --bg-1: #f3f8ff;
+      --bg-2: #f0fff7;
+      --accent: #2e86ff;
+      --accent-2: #2ecc71;
+      --danger: #e74c3c;
+      --muted: #7d8aa3;
+      --card-bg: #ffffff;
+      --glass: rgba(255,255,255,0.6);
+      --max-width: 1100px;
+    }
+
+    html,.AB {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+      
+      color: #233040;
+    }
+
+    /* center main app */
+    .app-wrapper {
+      margin-top: 50px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 36px 18px;
+      box-sizing: border-box;
+    }
+
+    .app-content {
+      width: 100%;
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+
+    header.app-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    header.app-header h1 {
+      margin: 0;
+      font-size:22px;
+      font-weight:700;
+      color: #15304a;
+    }
+    header.app-header .small-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* container layout */
+    .top-row {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    /* controls card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 20px rgba(20,30,50,0.06);
+      border: 1px solid rgba(30,40,60,0.04);
+    }
+    .controls {
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .controls select {
+      min-width: 210px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #dce7ff;
+      background: linear-gradient(180deg,#fff,#fbfdff);
+      font-size: 15px;
+    }
+
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight:600;
+      cursor:pointer;
+      border: none;
+      transition: transform .08s ease, box-shadow .12s ease;
+      box-shadow: 0 6px 18px rgba(46,134,255,0.12);
+      background: var(--accent);
+      color: white;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn.secondary {
+      background: #6c7a8a;
+      box-shadow: 0 6px 18px rgba(108,122,138,0.08);
+    }
+    .btn.danger {
+      background: var(--danger);
+      box-shadow: 0 6px 18px rgba(231,76,60,0.12);
+    }
+
+    /* main info */
+    .info-grid {
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 12px;
+    }
+    .info-block h4 { margin:0 0 8px 0; font-size:14px; color:#1f3550; }
+    .info-block p { margin:0; color:var(--muted); font-size:14px; line-height:1.35; }
+
+    /* smaller aside panel */
+    .aside .muted { color: var(--muted); font-size:13px; }
+
+    /* feedback area */
+    .feedback-area textarea {
+      width:100%;
+      min-height:84px;
+      border-radius:10px;
+      border:1px solid #e6eefc;
+      padding:10px;
+      resize:vertical;
+      font-size:14px;
+      background:#fbfdff;
+    }
+
+    /* completed cards grid */
+    #completedCards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    /* each completed card */
+    .completed-card {
+      border-radius:12px;
+      padding:12px;
+      background: linear-gradient(180deg,#fbfff6,#f2fff0);
+      border: 1px solid rgba(46,204,113,0.08);
+      box-shadow: 0 4px 12px rgba(46,204,113,0.06);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .completed-card h3 { margin:0; font-size:15px; color:#145A32; }
+    .completed-card p { margin:0; color: #2e3b44; font-size:13px; }
+
+    /* status and small text */
+    .muted { color: var(--muted); font-size:13px; }
+
+    /* ERROR box visible inline when needed */
+    #errorBox {
+      display:none;
+      padding:10px 12px;
+      background: #fff2f2;
+      border: 1px solid #ffd0d0;
+      color: #b12b2b;
+      border-radius:8px;
+      margin-bottom:12px;
+    }
+    #errorBox.show { display:block; }
+
+    /* ===== MODAL (centered) ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1200;
+      background: rgba(10,20,30,0.45);
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+      padding: 20px;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal-box {
+      width: 100%;
+      max-width: 520px;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(16,28,50,0.28);
+      text-align: center;
+    }
+    .modal-box h2 { margin:0 0 8px 0; color:#15304a; font-size:20px; }
+    .modal-box p { margin:0 0 18px 0; color:var(--muted); font-size:15px; }
+    .modal-actions { display:flex; gap: 10px; justify-content:center; }
+
+    .modal-btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .modal-btn.ok {
+      background: linear-gradient(90deg,var(--accent), #1f6bff);
+      color: white;
+      box-shadow: 0 10px 30px rgba(46,134,255,0.18);
+    }
+    .modal-btn.cancel {
+      background: #f0f4ff;
+      color: #15304a;
+    }
+
+    /* blur background when modal open - toggle by adding .modal-active to body */
+    body.modal-active .app-content {
+      filter: blur(6px) saturate(0.95);
+      pointer-events: none;
+      user-select: none;
+    }
+    body.modal-active .modal-overlay { pointer-events: auto; } /* allow clicking modal only */
+
+    /* responsive */
+    @media (max-width: 1040px) {
+      .top-row { grid-template-columns: 1fr; }
+      #completedCards { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      #completedCards { grid-template-columns: 1fr; }
+      .controls select { min-width: 140px; }
+      .app-wrapper { padding: 22px 10px; }
+    }
+    /* animation for completed cards */
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.completed-card.new-card {
+  animation: cardFadeIn 0.5s ease-out;
+}

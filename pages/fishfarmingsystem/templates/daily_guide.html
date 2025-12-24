@@ -1,0 +1,420 @@
+
+{% extends 'base.html' %}
+
+{% block title %}15-Day Fish Plan | AquaSmart{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='daily_guide.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="AB">
+      <!-- MODAL overlay (hidden by default) -->
+  <div id="completionModal" class="modal-overlay" role="dialog" aria-hidden="true">
+    <div class="modal-box" role="document" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">You Have Completed the 15-day Guide</h2>
+      <p id="modalText">Congratulations! Press <strong>OK</strong> to save this completion and clear the active batch. This will create a completed guide card.</p>
+      <div class="modal-actions">
+        <button id="modalOkBtn" class="modal-btn ok">OK</button>
+        <button id="modalCancelBtn" class="modal-btn cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-wrapper">
+    <div class="app-content">
+      <header class="app-header">
+        <h1>15-Day Fish Rearing Plan</h1>
+        <div class="small-note">Quick guide & feedback — data saved to your account</div>
+      </header>
+
+      <!-- Completed guides cards (grid of 3 per row) -->
+      <div id="completedCards" aria-live="polite" class="cards-grid" style="margin-bottom:16px;"></div>
+
+      <div class="top-row">
+        <!-- main card -->
+        <div class="card">
+          <div class="controls">
+            <label for="fishSelect" class="muted" style="margin-right:6px;">Select fish:</label>
+            <select id="fishSelect" aria-label="Select fish"></select>
+
+            <button id="startBatchBtn" class="btn">Start New Batch (Today)</button>
+            <button id="clearBatchBtn" class="btn danger">Clear Batch</button>
+          </div>
+
+          <div style="margin-top:14px;" class="info-blocks">
+            <h3 style="margin-top: 10px; margin-bottom: 8px;">Today's guidance</h3>
+            <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+              <div style="min-width: 220px;">
+                <p class="muted" style="margin:0 0 6px 0;"><strong>Batch start:</strong> <span id="batchStartDisplay">Not set</span></p>
+                <p class="muted" style="margin:0;"><strong>Current day:</strong> <span id="currentDayDisplay">-</span> / 15</p>
+              </div>
+              <div style="text-align:right;">
+                <h4 id="dayTitle" style="margin:0;">Day -</h4>
+                <div class="muted" style="font-size:13px;">Tip: submit feedback after following today's steps</div>
+              </div>
+            </div>
+
+            <div class="info-grid" style="margin-top:14px;">
+              <div class="info-block">
+                <h4>Check your water</h4>
+                <p id="checkWater">—</p>
+              </div>
+              <div class="info-block">
+                <h4>Feed name</h4>
+                <p id="feedName">—</p>
+              </div>
+
+              <div class="info-block">
+                <h4>Fertilizer</h4>
+                <p id="fertilizer">—</p>
+              </div>
+              <div class="info-block">
+                <h4>How to care fish</h4>
+                <p id="careText">—</p>
+                <p style="margin-top:8px;"><a id="youtubeLink" href="#" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:600; display:none;">Watch care video ↗</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- aside card -->
+        <aside class="card aside">
+          <h4 style="margin-top:0;">Feedback</h4>
+          <div class="feedback-area">
+            <textarea id="feedbackText" placeholder="Write feedback..."></textarea>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <button id="submitFeedbackBtn" class="btn">Submit Feedback</button>
+              <button id="clearFeedbackBtn" class="btn secondary">Clear</button>
+            </div>
+            <div id="feedbackStatus" class="muted" style="margin-top:8px;"></div>
+            <div id="errorBox" role="status" aria-live="assertive"></div>
+            <div class="muted" style="margin-top:12px;">Notifications appear when you open the page.</div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Elements
+    const fishSelect = document.getElementById('fishSelect');
+    const startBatchBtn = document.getElementById('startBatchBtn');
+    const clearBatchBtn = document.getElementById('clearBatchBtn');
+    const batchStartDisplay = document.getElementById('batchStartDisplay');
+    const currentDayDisplay = document.getElementById('currentDayDisplay');
+    const dayTitle = document.getElementById('dayTitle');
+
+    const checkWater = document.getElementById('checkWater');
+    const feedName = document.getElementById('feedName');
+    const fertilizer = document.getElementById('fertilizer');
+    const careText = document.getElementById('careText');
+    const youtubeLink = document.getElementById('youtubeLink');
+
+    const feedbackText = document.getElementById('feedbackText');
+    const submitFeedbackBtn = document.getElementById('submitFeedbackBtn');
+    const clearFeedbackBtn = document.getElementById('clearFeedbackBtn');
+    const feedbackStatus = document.getElementById('feedbackStatus');
+    const errorBox = document.getElementById('errorBox');
+
+    const completedCards = document.getElementById('completedCards');
+
+    // modal
+    const modal = document.getElementById('completionModal');
+    const modalOkBtn = document.getElementById('modalOkBtn');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalText = document.getElementById('modalText');
+
+    // state
+    window.currentBatch = null;
+
+    // helper: show/hide error
+    function showError(msg) {
+      errorBox.innerText = msg;
+      errorBox.classList.add('show');
+      console.error(msg);
+      // also show briefly
+      setTimeout(()=> { errorBox.classList.remove('show'); errorBox.innerText=''; }, 6000);
+    }
+
+    // compute day from YYYY-MM-DD-like string
+    function computeCurrentDay(startDateStr) {
+      if (!startDateStr) return null;
+      const isoMatch = startDateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      let start;
+      if (isoMatch) {
+        const y = parseInt(isoMatch[1], 10);
+        const m = parseInt(isoMatch[2], 10) - 1;
+        const d = parseInt(isoMatch[3], 10);
+        start = new Date(y, m, d);
+      } else {
+        start = new Date(startDateStr);
+        if (isNaN(start.getTime())) return null;
+      }
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      start.setHours(0,0,0,0);
+      const diff = today - start;
+      const days = Math.floor(diff / (1000*60*60*24)) + 1;
+      return isNaN(days) ? null : days;
+    }
+
+    // LOAD fish list
+    async function loadFishList() {
+      try {
+        const res = await fetch('/fish_list', { credentials: 'same-origin' });
+        const j = await res.json();
+        if (j.error) { showError('fish_list error: '+j.error); return; }
+        fishSelect.innerHTML = '<option value="">-- Select Fish --</option>';
+        (j.fish || []).forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f; opt.innerText = f;
+          fishSelect.appendChild(opt);
+        });
+      } catch (e) {
+        showError('Error loading fish list: ' + e);
+      }
+    }
+
+// refresh completed guides cards
+async function refreshCompletedCards() {
+  try {
+    const res = await fetch('/get_completed_guides', { credentials: 'same-origin' });
+    const j = await res.json();
+    if (j.error) { showError('get_completed_guides: '+j.error); return; }
+
+    const arr = j.completed || [];
+
+    // --- Clear container ---
+    completedCards.innerHTML = '';
+
+    if (!arr.length) {
+      completedCards.innerHTML =
+        '<div class="completed-card"><h3>No completed guides yet</h3><p class="muted">Complete a guide to see it here.</p></div>';
+      return;
+    }
+
+    arr.forEach((c, index) => {
+      const card = document.createElement('div');
+      card.className = 'completed-card new-card'; // add animation class
+      const dateStr = c.complete_date || '-';
+      card.innerHTML = `
+        <h3>You completed the guide</h3>
+        <p><strong>Fish:</strong> ${escapeHtml(c.fish)}</p>
+        <p class="muted"><strong>Date:</strong> ${dateStr}</p>
+      `;
+
+      // delay animation slightly for each card (stagger effect)
+      card.style.animationDelay = `${index * 0.1}s`;
+
+      completedCards.appendChild(card);
+    });
+  } catch (e) {
+    showError('Error loading completed guides: ' + e);
+  }
+}
+
+    // refresh main UI (batch + guide)
+    async function refreshUI() {
+      try {
+        const res = await fetch('/get_batch', { credentials: 'same-origin' });
+        if (!res.ok) { showError('/get_batch failed: ' + res.status); return; }
+        const data = await res.json();
+        if (data.error) { showError('/get_batch: ' + data.error); return; }
+        const batch = data.batch;
+        window.currentBatch = batch;
+        if (!batch) {
+          batchStartDisplay.innerText = 'Not set';
+          currentDayDisplay.innerText = '-';
+          dayTitle.innerText = 'Day -';
+          checkWater.innerText = '—';
+          feedName.innerText = '—';
+          fertilizer.innerText = '—';
+          careText.innerText = '—';
+          youtubeLink.style.display = 'none';
+          return;
+        }
+
+        batchStartDisplay.innerText = batch.start_date || 'Invalid';
+        const day = computeCurrentDay(batch.start_date);
+        currentDayDisplay.innerText = (day === null) ? 'null' : day;
+        dayTitle.innerText = `Day ${(day === null) ? 'null' : day} - ${batch.fish}`;
+
+        if (day === null) {
+          showError('Could not parse batch start date. Ensure DB start_date is YYYY-MM-DD.');
+          return;
+        }
+
+        // if completed
+        if (day > 15) {
+          // show modal (centered) instead of confirm()
+          showCompletionModal(batch.fish);
+          return;
+        }
+
+        // fetch guide for this fish/day
+        const guideRes = await fetch(`/daily_guide1?fish=${encodeURIComponent(batch.fish)}&day=${encodeURIComponent(day)}`, { credentials: 'same-origin' });
+        if (!guideRes.ok) {
+          const txt = await guideRes.text().catch(()=>null);
+          showError('/daily_guide1 failed: ' + guideRes.status + ' ' + txt);
+          return;
+        }
+        const guideJson = await guideRes.json();
+        if (!guideJson || !guideJson.guide) {
+          checkWater.innerText = 'No data for this day';
+          feedName.innerText = 'No data';
+          fertilizer.innerText = 'No data';
+          careText.innerText = 'No data';
+          youtubeLink.style.display = 'none';
+          return;
+        }
+        const g = guideJson.guide;
+        checkWater.innerText = g.check_water || '—';
+        feedName.innerText = g.feed_name || '—';
+        fertilizer.innerText = g.fertilizer || '—';
+        careText.innerText = g.care_text || '—';
+        if (g.youtube_link) { youtubeLink.href = g.youtube_link; youtubeLink.style.display = 'inline'; } else youtubeLink.style.display = 'none';
+
+      } catch (e) {
+        showError('Unexpected error in refreshUI: ' + e);
+      }
+    }
+
+    // show centered modal for completion
+    function showCompletionModal(fish) {
+      modalText.innerHTML = `You have reached the end of the 15-day plan for <strong>${escapeHtml(fish)}</strong>.<br><br>Press OK to mark this guide as completed and clear your active batch.`;
+      modal.classList.add('show');
+      document.body.classList.add('modal-active');
+      modal.setAttribute('aria-hidden', 'false');
+      // focus OK button
+      setTimeout(()=> modalOkBtn.focus(), 80);
+      // store current fish name on the modal element for use when OK clicked
+      modal.dataset.fish = fish;
+    }
+
+    function hideCompletionModal() {
+      modal.classList.remove('show');
+      document.body.classList.remove('modal-active');
+      modal.setAttribute('aria-hidden', 'true');
+      delete modal.dataset.fish;
+    }
+
+    // modal button handlers
+    modalOkBtn.addEventListener('click', async () => {
+      const fish = modal.dataset.fish;
+      if (!fish) { hideCompletionModal(); return; }
+      try {
+        modalOkBtn.disabled = true;
+        const res = await fetch('/complete_guide', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fish: fish })
+        });
+        const j = await res.json();
+        if (j.error) showError('complete_guide error: ' + j.error);
+        await refreshCompletedCards();
+        await refreshUI();
+      } catch (e) {
+        showError('Network error completing guide: ' + e);
+      } finally {
+        modalOkBtn.disabled = false;
+        hideCompletionModal();
+      }
+    });
+
+    modalCancelBtn.addEventListener('click', () => {
+      hideCompletionModal();
+    });
+
+    // start/clear batch
+    startBatchBtn.addEventListener('click', async () => {
+      clearError();
+      const fish = fishSelect.value;
+      if (!fish) return showError('Please select a fish first.');
+      try {
+        const res = await fetch('/start_batch', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fish })
+        });
+        const j = await res.json();
+        if (j.error) return showError('start_batch error: ' + j.error);
+        await refreshUI();
+      } catch (e) {
+        showError('Network error start_batch: ' + e);
+      }
+    });
+
+    clearBatchBtn.addEventListener('click', async () => {
+      if (!confirm('Clear batch for this account?')) return;
+      try {
+        const res = await fetch('/clear_batch', { method: 'POST', credentials: 'same-origin' });
+        const j = await res.json();
+        if (j.error) return showError('clear_batch error: ' + j.error);
+        await refreshUI();
+      } catch (e) {
+        showError('Network error clear_batch: ' + e);
+      }
+    });
+
+    // feedback
+    submitFeedbackBtn.addEventListener('click', async () => {
+      clearError();
+      const batch = window.currentBatch;
+      if (!batch) return showError('Start a batch before submitting feedback.');
+      const fish = batch.fish;
+      const day = parseInt(currentDayDisplay.innerText, 10);
+      const feedback = feedbackText.value.trim();
+      const batchStartDate = batch.start_date;
+      if (!fish || !day || !feedback) return showError('Please ensure batch is running and feedback has content.');
+
+      try {
+        const res = await fetch('/submit_feedback', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fish: fish, day: day, batch_start_date: batchStartDate, feedback: feedback })
+        });
+        const j = await res.json();
+        if (j.error) { feedbackStatus.innerText = 'Error: ' + j.error; return; }
+        if (j.status === 'ok') {
+          feedbackStatus.innerText = 'Thanks — feedback submitted.';
+          feedbackText.value = '';
+          setTimeout(()=> feedbackStatus.innerText = '', 4000);
+        } else {
+          feedbackStatus.innerText = 'Unknown response';
+        }
+      } catch (e) {
+        feedbackStatus.innerText = 'Network error: ' + e;
+      }
+    });
+
+    clearFeedbackBtn.addEventListener('click', () => {
+      feedbackText.value = '';
+      feedbackStatus.innerText = '';
+    });
+
+    // helper clear error
+    function clearError() { errorBox.classList.remove('show'); errorBox.innerText = ''; }
+
+    // small HTML escaping util for safety
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, function (m) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);
+      });
+    }
+
+    // init
+    (async function init(){
+      await loadFishList();
+      await refreshCompletedCards();
+      await refreshUI();
+      // periodic refresh
+      setInterval(refreshUI, 60*60*1000);
+    })();
+  </script>
+</div>
+{% endblock %}

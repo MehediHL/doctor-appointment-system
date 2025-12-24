@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}About | FishAdvisor AI{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='about.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="about-project">
+    <div class="header">
+        <h1>About Fish Farming Advisory System</h1>
+        <p class="intro">
+        Fish Farming Advisory System is a revolutionary platform designed to empower the fish farmers of Bangladesh 
+        with the power of artificial intelligence. Our mission is to bridge the gap between traditional 
+        farming practices and modern technology, making aquaculture more sustainable, efficient, and 
+        profitable for everyone.
+        </p>
+    </div>
+    
+    <div class="content-section">
+        <h2>Our Vision</h2>
+        <p>
+            We envision a future where every fish farmer in Bangladesh has access to data-driven insights and expert advice at their fingertips. By leveraging cutting-edge AI, we aim to help increase yields, reduce losses, and promote environmentally friendly farming practices across the nation.
+        </p>
+    </div>
+    
+    <div class="content-section">
+        <h2>What We Offer</h2>
+        <ul>
+            <li>AI-Powered Fish Classification: Instantly identify fish species from an image and get tailored farming guides.</li>
+            <li>Expert Chatbot: Get immediate answers to your farming questions from our knowledgeable AI assistant, available 24/7.</li>
+            <li>Daily Suggestions: Receive personalized daily action plans for your specific fish culture, from feeding to water management.</li>
+            <li>Community Marketplace: A dedicated platform for farmers to buy and sell fish fry, connecting hatcheries directly with cultivators.</li>
+            <li>Data-Driven Planning: Utilize our tools for better budgeting and planning of your farming operations.</li>
+        </ul>
+    </div>    
+    
+    <div class="content-section">
+         <p class="intro">
+        This project was built with a passion for technology and a deep respect for the hardworking farmers of Bangladesh. We are continuously working to improve our platform and add new features to better serve the aquaculture community.
+        </p>
+    </div>
+</div>
+{% endblock %}

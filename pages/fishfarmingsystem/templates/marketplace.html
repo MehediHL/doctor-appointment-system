@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Fish Fry Marketplace{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='marketplace.css') }}">
+
+{% endblock %}
+
+{% block content %}
+<div class="AB">
+<div class="top-buttons">
+  <button onclick="toggleSection('orders')">Pending Orders</button>
+  <button onclick="toggleSection('create')">Create New Listing</button>
+  <button onclick="toggleSection('cart')">My Cart</button>
+</div>
+
+<!-- Orders -->
+<div id="orders" class="section" style="display:none">
+  <h2>📌 Orders for My Listings</h2>
+  {% if seller_orders %}
+    {% for order in seller_orders %}
+      <div class="order-card">
+        <img src="{{ url_for('static', filename=order.image.split('static/')[-1]) if order.image else url_for('static', filename='placeholder.png') }}">
+        <div>
+          <b>{{ order.fish_type }}</b> - {{ order.price }} BDT<br>
+          Buyer: {{ order.buyer_name }} ({{ order.buyer_phone }})<br>
+          Address: {{ order.buyer_address }}<br>
+          Status: {{ order.status }}
+          {% if order.status == "Pending" %}
+          <form action="/confirm_order/{{ order.id }}" method="POST">
+            <button type="submit">Confirm</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No orders yet.</p>
+  {% endif %}
+</div>
+
+<!-- Create Listing -->
+<div id="create" class="section" style="display:none">
+  <h2>+ Create a New Listing</h2>
+  <form action="/create_listing" method="POST" enctype="multipart/form-data" class="create-form">
+    <input type="text" name="fish_type" placeholder="Fish type (e.g. Tilapia fry)" required><br>
+    <input type="number" name="price" step="0.01" placeholder="Price per piece" required><br>
+    <input type="number" name="quantity" placeholder="Available quantity" required><br>
+    <textarea name="description" placeholder="Description"></textarea><br>
+    <input type="file" name="image"><br>
+    <button type="submit">Post Ad</button>
+  </form>
+</div>
+
+<!-- Cart -->
+<div id="cart" class="section" style="display:none">
+  <h2>🛒 My Cart</h2>
+  {% if cart %}
+    {% for item in cart %}
+      <div class="cart-card">
+        <img src="{{ url_for('static', filename=item.image.split('static/')[-1]) if item.image else url_for('static', filename='placeholder.png') }}">
+        <div>
+          <b>{{ item.fish_type }}</b> - {{ item.price }} BDT<br>
+          Status: {{ item.status }}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No items in cart.</p>
+  {% endif %}
+</div>
+
+<!-- Listings -->
+<div id="listings" class="section" style="display:block">
+  <h2>Available Listings</h2>
+  <div class="listings-grid">
+    {% for l in listings %}
+      <div class="listing-card">
+        <!-- Fish Picture -->
+        <img src="{{ url_for('static', filename=l.image.split('static/')[-1]) if l.image else url_for('static', filename='placeholder.png') }}">
+
+        <!-- Seller Info -->
+        <div class="seller-info">
+          <img src="{{ url_for('static', filename=l.user_photo.split('static/')[-1]) if l.user_photo else url_for('static', filename='placeholder_user.png') }}" class="profile-pic">
+          <div class="seller-details">
+            <p><b>{{ l.first_name }} {{ l.last_name }}</b></p>
+            <p><i>📧 {{ l.gmail }}</i></p>
+            <p>📞 {{ l.phone }}</p>
+            <p>📍 {{ l.location }}</p>
+          </div>
+        </div>
+
+        <!-- Fish Info -->
+        <div class="fish-info">
+          <p><b>{{ l.fish_type }}</b></p>
+          <p>💰 Price: {{ l.price }} BDT per piece</p>
+          <p>🐟 Quantity: {{ l.quantity }} Piece</p>
+          <p>{{ l.description }}</p>
+          <p class="created-date">🕓 Posted on: {{ l.created_at.strftime('%d %b %Y %I:%M %p') }}</p>
+        </div>
+
+        <!-- Buyer Order Form -->
+        {% if l.user_id != session['user_id'] %}
+          <button onclick="toggleOrderForm({{ l.id }})" class="order-btn">Order Now</button>
+          <form id="order-form-{{ l.id }}" action="/order/{{ l.id }}" method="POST" style="display:none;" class="order-form">
+            <input type="text" name="buyer_name" placeholder="Your Name" required>
+            <input type="text" name="buyer_phone" placeholder="Your Phone" required>
+            <input type="text" name="buyer_address" placeholder="Your Address" required>
+            <button type="submit">Submit Order</button>
+          </form>
+        {% else %}
+          <p><i>Your Post</i></p>
+          <form action="/delete_listing/{{ l.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this listing?');">
+            <button type="submit" class="delete-btn">Delete Post</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+  <script>
+    function toggleSection(id) {
+      document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+      document.getElementById(id).style.display = "block";
+    }
+  </script>
+<script>
+  function toggleOrderForm(id) {
+    let form = document.getElementById("order-form-" + id);
+    form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+  }
+</script>
+
+</div>
+{% endblock %}

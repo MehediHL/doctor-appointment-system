@@ -1,0 +1,42 @@
+.AB {
+  margin: 0;
+  font-family: Arial, sans-serif;
+ 
+  color: #333;
+  padding-top:70px; 
+}
+
+
+
+/* Dashboard cards */
+.dashboard-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px;
+  flex-wrap: wrap;
+}
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 280px;
+  text-align: center;
+}
+.card h2 {
+  margin-bottom: 10px;
+}
+.button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: #1a73e8;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.button:hover {
+  background: #155ab6;
+}
+

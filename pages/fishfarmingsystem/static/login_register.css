@@ -1,0 +1,138 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Background */
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+    background:linear-gradient(135deg, rgba(224, 247, 250, 0.4), rgba(241, 248, 233, 0.4)), url("background.jpg");
+    background-size: cover;      /* Image fills full screen */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevent repeating */
+}
+
+/* Container */
+.container {
+  background: #fff;
+  width: 380px;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.5s ease-in-out;
+  margin-top: 90px;
+  margin-bottom: 20px;
+
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form wrapper */
+.form-box {
+  display: none;
+}
+
+.form-box.active {
+  display: block;
+}
+
+/* Headings */
+.form-box h2 {
+  text-align: center;
+  color: #333;
+  font-size: 22px;
+  margin-bottom: 18px;
+}
+
+/* Inputs */
+.form-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: border 0.3s;
+}
+
+.form-box input:focus {
+  border-color: #4facfe;
+  outline: none;
+}
+
+/* Buttons */
+.form-box button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  background: #4facfe;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.form-box button:hover {
+  background: #008cba;
+}
+
+/* Special confirm button */
+#confirmForm button {
+  background: #28a745;
+}
+
+#confirmForm button:hover {
+  background: #218838;
+}
+
+/* Links */
+.form-box p {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.form-box a {
+  color: #4facfe;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.form-box a:hover {
+  text-decoration: underline;
+}
+
+/* Messages */
+.msg {
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+  color: #e74c3c; /* error red */
+}
+
+.msg.success {
+  color: #28a745; /* success green */
+}
+
+/* 📍 Get Location button styling */
+#registerForm button[type="button"] {
+  background: #6c757d;
+  margin-bottom: 6px;
+}
+
+#registerForm button[type="button"]:hover {
+  background: #5a6268;
+}

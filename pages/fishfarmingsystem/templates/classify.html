@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Classify Fish | AquaSmart{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='classify.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="AB">
+<div class="container">
+    <h2>Upload Fish Image</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadImage()">Classify</button>
+    
+    <!-- Loading spinner -->
+    <div id="loader" style="display:none;"></div>
+
+    <p id="result"></p>
+    <img id="preview" style="max-width:300px; margin-top:10px;" />
+
+    <!-- ====== New: fish info panel (hidden until a prediction) ====== -->
+    <div id="fishDetails" style="display:none; margin-top:20px; width:100%; text-align:left;">
+      <!-- two summary lines -->
+      <div id="fishSummary">
+        <p id="summary1" style="font-weight:600; margin:0;"></p>
+        <p id="summary2" style="margin:6px 0 12px 0; color:#444;"></p>
+      </div>
+
+      <!-- buttons -->
+      <div id="fishOptions" style="margin-bottom:12px;">
+        <button id="optFert" type="button">Fertilizer</button>
+        <button id="optFood" type="button">Food</button>
+        <button id="optWater" type="button">Water</button>
+      </div>
+
+      <!-- content area that changes when clicking options -->
+      <div id="optionContent" style="background:#f7fff7; padding:12px; border-radius:8px; border:1px solid #e0f2f1; min-height:60px;">
+        <em>Select an option to view details</em>
+      </div>
+    </div>
+    <!-- ============================================================ -->
+  </div>
+
+  <script>
+    let currentFishInfo = null; // will hold JSON from /fish_info
+
+    async function uploadImage() {
+      const fileInput = document.getElementById("fileInput");
+      if (fileInput.files.length === 0) return alert("Choose an image");
+
+      document.getElementById("loader").style.display = "block"; // Show spinner
+      document.getElementById("result").innerText = "";
+      document.getElementById("preview").src = "";
+      // hide details until we get fresh data
+      document.getElementById("fishDetails").style.display = "none";
+      currentFishInfo = null;
+      document.getElementById("optionContent").innerHTML = "<em>Select an option to view details</em>";
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      try {
+        const res = await fetch("/predict", { method: "POST", body: formData });
+        const data = await res.json();
+
+        if (data.error) {
+          document.getElementById("result").innerText = "❌ " + data.error;
+        } else {
+          document.getElementById("result").innerText =
+            `✅ Fish: ${data.prediction} (${data.confidence.toFixed(2)}%)`;
+          document.getElementById("preview").src = data.image_url;
+
+          // fetch details from MySQL-backed endpoint
+          fetchFishInfo(data.prediction);
+        }
+      } catch (err) {
+        document.getElementById("result").innerText = "❌ Server error";
+        console.error(err);
+      } finally {
+        document.getElementById("loader").style.display = "none"; // Hide spinner
+      }
+    }
+
+    async function fetchFishInfo(fishName) {
+      try {
+        const resp = await fetch(`/fish_info?name=${encodeURIComponent(fishName)}`);
+        const json = await resp.json();
+        if (json.error) {
+          console.warn("No fish info:", json.error);
+          document.getElementById("fishDetails").style.display = "none";
+          return;
+        }
+        currentFishInfo = json;
+        // populate the summary
+        document.getElementById("summary1").innerText = json.summary1 || "";
+        document.getElementById("summary2").innerText = json.summary2 || "";
+
+        // show the details panel
+        document.getElementById("fishDetails").style.display = "block";
+      } catch (e) {
+        console.error("Error fetching fish info:", e);
+      }
+    }
+
+    // wire option buttons (delegation)
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("optFert").addEventListener("click", () => {
+        if (!currentFishInfo) return;
+        document.getElementById("optionContent").innerText = currentFishInfo.fertilizer || "No fertilizer info available.";
+      });
+      document.getElementById("optFood").addEventListener("click", () => {
+        if (!currentFishInfo) return;
+        document.getElementById("optionContent").innerText = currentFishInfo.food || "No food info available.";
+      });
+      document.getElementById("optWater").addEventListener("click", () => {
+        if (!currentFishInfo) return;
+        document.getElementById("optionContent").innerText = currentFishInfo.water || "No water info available.";
+      });
+    });
+  </script>
+</div>
+{% endblock %}
