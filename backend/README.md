@@ -16,9 +16,9 @@ npm install
 The `.env` file is already created with your MongoDB Atlas credentials. Make sure the values are correct:
 
 ```
-MONGO_USERNAME=mehedihasanlemon
-MONGO_PASSWORD=xF30vRmi0JL8LOiK
-MONGO_CLUSTER=@cluster0.yi4q0qs.mongodb.net
+MONGO_USERNAME=username
+MONGO_PASSWORD=mongopassword
+MONGO_CLUSTER=clustername
 MONGO_DB=medicare_db
 PORT=5000
 JWT_SECRET=medicare_secret_key_2024_random_xyz_abc_123_secure_token
