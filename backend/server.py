@@ -10,8 +10,8 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
 
 # Email configuration
-SENDER_EMAIL = "mehedihasanlemon537@gmail.com"
-SENDER_PASSWORD = "uwtv ekmt jdtw athu"  # Gmail App Password
+SENDER_EMAIL = "your@gmail.com"
+SENDER_PASSWORD = "gmail app password"  # Gmail App Password
 
 # Store verification codes temporarily (in production, use Redis or database)
 verification_codes = {}
